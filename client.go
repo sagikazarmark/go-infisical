@@ -8,6 +8,8 @@ import (
 	"github.com/infisical/go-sdk/packages/util"
 )
 
+type InfisicalClientInterface = infisical.InfisicalClientInterface
+
 type Client struct {
 	authenticator Authenticator
 
@@ -49,7 +51,7 @@ func NewClient(authenticator Authenticator, opts ...Option) *Client {
 
 // Authenticator exchanges a set of credentials (either explicit or identity-based) for an access token.
 type Authenticator interface {
-	Authenticate(ctx context.Context, httpClient *resty.Client) (infisical.MachineIdentityCredential, error)
+	Authenticate(ctx context.Context, httpClient *resty.Client) (MachineIdentityCredential, error)
 }
 
 // Option configures a [Client] using the functional options paradigm popularized by Rob Pike and Dave Cheney.
@@ -80,7 +82,7 @@ func WithUserAgent(s string) Option {
 	})
 }
 
-func (c *Client) client(ctx context.Context) (infisical.InfisicalClientInterface, error) {
+func (c *Client) client(ctx context.Context) (InfisicalClientInterface, error) {
 	config := infisical.Config{
 		SiteUrl:   c.siteURL,
 		UserAgent: c.userAgent,
@@ -98,7 +100,9 @@ func (c *Client) client(ctx context.Context) (infisical.InfisicalClientInterface
 	return client, nil
 }
 
-// UpdateConfiguration implements [infisical.InfisicalClientInterface].
+type Config = infisical.Config
+
+// UpdateConfiguration implements [InfisicalClientInterface].
 // DO NOT USE THIS FUNCTION: IT PANICS.
 //
 // Updating configuration after initialization is bad practice.
@@ -107,19 +111,25 @@ func (c *Client) UpdateConfiguration(_ infisical.Config) {
 	panic("do not update configuration after initialization: initialize a new client instead")
 }
 
-// Secrets implements [infisical.InfisicalClientInterface].
-func (c *Client) Secrets() infisical.SecretsInterface {
+type SecretsInterface = infisical.SecretsInterface
+
+// Secrets implements [InfisicalClientInterface].
+func (c *Client) Secrets() SecretsInterface {
 	return clientSecrets{c}
 }
 
-// Folders implements [infisical.InfisicalClientInterface].
-func (c *Client) Folders() infisical.FoldersInterface {
+type FoldersInterface = infisical.FoldersInterface
+
+// Folders implements [InfisicalClientInterface].
+func (c *Client) Folders() FoldersInterface {
 	return clientFolders{c}
 }
 
-// Auth implements [infisical.InfisicalClientInterface].
+type AuthInterface = infisical.AuthInterface
+
+// Auth implements [InfisicalClientInterface].
 //
 // Note: Calling any of the auth functions will not change the access token or authentication method of the client.
-func (c *Client) Auth() infisical.AuthInterface {
+func (c *Client) Auth() AuthInterface {
 	return clientAuth{c}
 }

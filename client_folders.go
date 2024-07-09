@@ -11,9 +11,13 @@ type clientFolders struct {
 	client *Client
 }
 
-var _ infisical.FoldersInterface = clientFolders{}
+var _ FoldersInterface = clientFolders{}
 
-func (f clientFolders) List(options infisical.ListFoldersOptions) ([]models.Folder, error) {
+type Folder = models.Folder
+
+type ListFoldersOptions = infisical.ListFoldersOptions
+
+func (f clientFolders) List(options ListFoldersOptions) ([]Folder, error) {
 	c, err := f.client.client(context.Background())
 	if err != nil {
 		return nil, err
@@ -22,7 +26,9 @@ func (f clientFolders) List(options infisical.ListFoldersOptions) ([]models.Fold
 	return c.Folders().List(options)
 }
 
-func (f clientFolders) Update(options infisical.UpdateFolderOptions) (models.Folder, error) {
+type UpdateFolderOptions = infisical.UpdateFolderOptions
+
+func (f clientFolders) Update(options UpdateFolderOptions) (Folder, error) {
 	c, err := f.client.client(context.Background())
 	if err != nil {
 		return models.Folder{}, err
@@ -31,7 +37,9 @@ func (f clientFolders) Update(options infisical.UpdateFolderOptions) (models.Fol
 	return c.Folders().Update(options)
 }
 
-func (f clientFolders) Create(options infisical.CreateFolderOptions) (models.Folder, error) {
+type CreateFolderOptions = infisical.CreateFolderOptions
+
+func (f clientFolders) Create(options CreateFolderOptions) (Folder, error) {
 	c, err := f.client.client(context.Background())
 	if err != nil {
 		return models.Folder{}, err
@@ -40,7 +48,9 @@ func (f clientFolders) Create(options infisical.CreateFolderOptions) (models.Fol
 	return c.Folders().Create(options)
 }
 
-func (f clientFolders) Delete(options infisical.DeleteFolderOptions) (models.Folder, error) {
+type DeleteFolderOptions = infisical.DeleteFolderOptions
+
+func (f clientFolders) Delete(options DeleteFolderOptions) (Folder, error) {
 	c, err := f.client.client(context.Background())
 	if err != nil {
 		return models.Folder{}, err
