@@ -10,12 +10,14 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-// AccessTokenRefresher wraps an [Authenticator] and refreshes the access token when it expires.
+// AccessTokenRenewer wraps an [Authenticator] and renews the access token when it expires (either by [renewing an existing access token] (if possible) or issuing a new one).
 //
 // Note: this implementation uses a lock upon every token access. You may find it to be a bottleneck in high-throughput scenarios.
 // An alternative implementation of this could refresh the token asynchronously and return the cached token in the meantime.
-func AccessTokenRefresher(authenticator Authenticator, opts ...AccessTokenRefresherOption) Authenticator {
-	a := &accessTokenRefresher{
+//
+// [renewing an existing access token]: https://infisical.com/docs/api-reference/endpoints/universal-auth/renew-access-token
+func AccessTokenRenewer(authenticator Authenticator, opts ...AccessTokenRenewerOption) Authenticator {
+	a := &accessTokenRenewer{
 		authenticator: authenticator,
 	}
 
@@ -34,32 +36,32 @@ func AccessTokenRefresher(authenticator Authenticator, opts ...AccessTokenRefres
 // If you're unfamiliar with this style,
 // see https://commandcenter.blogspot.com/2014/01/self-referential-functions-and-design.html and
 // https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis.
-type AccessTokenRefresherOption interface {
-	apply(a *accessTokenRefresher)
+type AccessTokenRenewerOption interface {
+	apply(a *accessTokenRenewer)
 }
 
-type accessTokenRefresherOptionFunc func(a *accessTokenRefresher)
+type accessTokenRenewerOptionFunc func(a *accessTokenRenewer)
 
-func (fn accessTokenRefresherOptionFunc) apply(a *accessTokenRefresher) {
+func (fn accessTokenRenewerOptionFunc) apply(a *accessTokenRenewer) {
 	fn(a)
 }
 
-// WithRefreshWindow configures a refresh window for the access token.
-// The access token will be refreshed when it expires or when the refresh window is reached, whichever comes first.
-func WithRefreshWindow(d time.Duration) AccessTokenRefresherOption {
-	return accessTokenRefresherOptionFunc(func(a *accessTokenRefresher) {
+// WithExpirationWindow configures an expiration window for the access token.
+// The access token will be refreshed when it expires or when the window is reached, whichever comes first.
+func WithExpirationWindow(d time.Duration) AccessTokenRenewerOption {
+	return accessTokenRenewerOptionFunc(func(a *accessTokenRenewer) {
 		a.refreshWindow = d.Abs()
 	})
 }
 
 // WithLogger configures a logger for the access token refresher.
-func WithLogger(logger *slog.Logger) AccessTokenRefresherOption {
-	return accessTokenRefresherOptionFunc(func(a *accessTokenRefresher) {
+func WithLogger(logger *slog.Logger) AccessTokenRenewerOption {
+	return accessTokenRenewerOptionFunc(func(a *accessTokenRenewer) {
 		a.logger = logger
 	})
 }
 
-type accessTokenRefresher struct {
+type accessTokenRenewer struct {
 	authenticator Authenticator
 	refreshWindow time.Duration
 
@@ -71,15 +73,15 @@ type accessTokenRefresher struct {
 	mu sync.Mutex
 }
 
-var _ Authenticator = &accessTokenRefresher{}
+var _ Authenticator = &accessTokenRenewer{}
 
-func (a *accessTokenRefresher) Authenticate(ctx context.Context, httpClient *resty.Client) (MachineIdentityCredential, error) {
+func (a *accessTokenRenewer) Authenticate(ctx context.Context, httpClient *resty.Client) (MachineIdentityCredential, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
 	// If we don't have a credential or it's about to expire, refresh it.
 	if a.credential == nil || time.Now().After(a.expiresAt.Add(-a.refreshWindow)) {
-		a.logger.Info("refreshing access token")
+		a.logger.Info("issuing new access token")
 
 		credential, err := a.authenticator.Authenticate(ctx, httpClient)
 		if err != nil {

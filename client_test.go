@@ -18,7 +18,7 @@ func TestTokenRefresh(t *testing.T) {
 		t.Skip("Skipping test because INFISICAL_CLIENT_ID, INFISICAL_CLIENT_SECRET or INFISICAL_PROJECT_ID are not set")
 	}
 
-	client := NewClient(AccessTokenRefresher(UniversalAuthLogin(clientID, clientSecret), WithRefreshWindow(10*time.Second)), WithSiteURL(os.Getenv("INFISICAL_SITE_URL")))
+	client := NewClient(AccessTokenRenewer(UniversalAuthLogin(clientID, clientSecret), WithExpirationWindow(10*time.Second)), WithSiteURL(os.Getenv("INFISICAL_SITE_URL")))
 
 	_, err := client.Secrets().Delete(infisical.DeleteSecretOptions{
 		ProjectID:   projectID,
