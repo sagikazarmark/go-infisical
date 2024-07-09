@@ -3,7 +3,6 @@
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/sagikazarmark/go-infisical/ci.yaml?style=flat-square)](https://github.com/sagikazarmark/go-infisical/actions/workflows/ci.yaml)
 [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/mod/github.com/sagikazarmark/go-infisical)
 ![Go Version](https://img.shields.io/badge/go%20version-%3E=1.22-61CFDD.svg?style=flat-square)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/sagikazarmark/go-infisical/badge?style=flat-square)](https://api.securityscorecards.dev/projects/github.com/sagikazarmark/go-infisical)
 [![built with nix](https://builtwithnix.org/badge.svg)](https://builtwithnix.org)
 
 This is an opinionated (aka. "better") wrapper around the official [Infisical Go SDK](https://github.com/Infisical/go-sdk).
