@@ -24,7 +24,7 @@ type Client struct {
 var _ infisical.InfisicalClientInterface = &Client{}
 
 // NewClient returns a new [Client].
-func NewClient(authenticator Authenticator, opts ...Option) *Client {
+func NewClient(authenticator Authenticator, opts ...ClientOption) *Client {
 	client := &Client{
 		authenticator: authenticator,
 	}
@@ -50,30 +50,30 @@ func NewClient(authenticator Authenticator, opts ...Option) *Client {
 	return client
 }
 
-// Option configures a [Client] using the functional options paradigm popularized by Rob Pike and Dave Cheney.
+// ClientOption configures a [Client] using the functional options paradigm popularized by Rob Pike and Dave Cheney.
 // If you're unfamiliar with this style,
 // see https://commandcenter.blogspot.com/2014/01/self-referential-functions-and-design.html and
 // https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis.
-type Option interface {
+type ClientOption interface {
 	apply(c *Client)
 }
 
-type optionFunc func(c *Client)
+type clientOptionFunc func(c *Client)
 
-func (fn optionFunc) apply(c *Client) {
+func (fn clientOptionFunc) apply(c *Client) {
 	fn(c)
 }
 
 // WithSiteURL configures a custom site URL.
-func WithSiteURL(s string) Option {
-	return optionFunc(func(c *Client) {
+func WithSiteURL(s string) ClientOption {
+	return clientOptionFunc(func(c *Client) {
 		c.siteURL = s
 	})
 }
 
 // WithUserAgent configures a custom user agent.
-func WithUserAgent(s string) Option {
-	return optionFunc(func(c *Client) {
+func WithUserAgent(s string) ClientOption {
+	return clientOptionFunc(func(c *Client) {
 		c.userAgent = s
 	})
 }
