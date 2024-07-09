@@ -8,6 +8,7 @@ import (
 	"github.com/infisical/go-sdk/packages/util"
 )
 
+//nolint:revive
 type InfisicalClientInterface = infisical.InfisicalClientInterface
 
 type Client struct {

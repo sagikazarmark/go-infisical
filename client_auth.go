@@ -50,6 +50,7 @@ func (a clientAuth) AzureAuthLogin(identityID string) (credential MachineIdentit
 	return c.Auth().AzureAuthLogin(identityID)
 }
 
+//nolint:revive
 func (a clientAuth) GcpIdTokenAuthLogin(identityID string) (credential MachineIdentityCredential, err error) {
 	c, err := a.client.client(context.Background())
 	if err != nil {
@@ -68,6 +69,7 @@ func (a clientAuth) GcpIamAuthLogin(identityID string, serviceAccountKeyFilePath
 	return c.Auth().GcpIamAuthLogin(identityID, serviceAccountKeyFilePath)
 }
 
+//nolint:revive
 func (a clientAuth) AwsIamAuthLogin(identityId string) (credential MachineIdentityCredential, err error) {
 	c, err := a.client.client(context.Background())
 	if err != nil {
