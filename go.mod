@@ -4,7 +4,7 @@ go 1.22.0
 
 require (
 	github.com/go-resty/resty/v2 v2.13.1
-	github.com/infisical/go-sdk v0.2.0
+	github.com/infisical/go-sdk v0.2.1
 )
 
 require (
