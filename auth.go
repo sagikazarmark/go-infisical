@@ -10,6 +10,8 @@ import (
 	api "github.com/infisical/go-sdk/packages/api/auth"
 )
 
+type MachineIdentityCredential = infisical.MachineIdentityCredential
+
 // UniversalAuthLogin authenticates using a client ID and client secret.
 func UniversalAuthLogin(clientID string, clientSecret string) Authenticator {
 	return universalAuthenticator{
@@ -25,7 +27,7 @@ type universalAuthenticator struct {
 
 var _ Authenticator = universalAuthenticator{}
 
-func (a universalAuthenticator) Authenticate(_ context.Context, httpClient *resty.Client) (infisical.MachineIdentityCredential, error) {
+func (a universalAuthenticator) Authenticate(_ context.Context, httpClient *resty.Client) (MachineIdentityCredential, error) {
 	return api.CallUniversalAuthLogin(httpClient, api.UniversalAuthLoginRequest{
 		ClientID:     a.clientID,
 		ClientSecret: a.clientSecret,
@@ -74,7 +76,7 @@ type accessTokenRefresher struct {
 	authenticator Authenticator
 	refreshWindow time.Duration
 
-	credential *infisical.MachineIdentityCredential
+	credential *MachineIdentityCredential
 	expiresAt  time.Time
 
 	// TODO: add a logger
@@ -84,7 +86,7 @@ type accessTokenRefresher struct {
 
 var _ Authenticator = &accessTokenRefresher{}
 
-func (a *accessTokenRefresher) Authenticate(ctx context.Context, httpClient *resty.Client) (infisical.MachineIdentityCredential, error) {
+func (a *accessTokenRefresher) Authenticate(ctx context.Context, httpClient *resty.Client) (MachineIdentityCredential, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
@@ -92,7 +94,7 @@ func (a *accessTokenRefresher) Authenticate(ctx context.Context, httpClient *res
 	if a.credential == nil || time.Now().After(a.expiresAt.Add(-a.refreshWindow)) {
 		credential, err := a.authenticator.Authenticate(ctx, httpClient)
 		if err != nil {
-			return infisical.MachineIdentityCredential{}, err
+			return MachineIdentityCredential{}, err
 		}
 
 		a.credential = &credential
