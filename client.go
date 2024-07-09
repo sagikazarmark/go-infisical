@@ -50,11 +50,6 @@ func NewClient(authenticator Authenticator, opts ...Option) *Client {
 	return client
 }
 
-// Authenticator exchanges a set of credentials (either explicit or identity-based) for an access token.
-type Authenticator interface {
-	Authenticate(ctx context.Context, httpClient *resty.Client) (MachineIdentityCredential, error)
-}
-
 // Option configures a [Client] using the functional options paradigm popularized by Rob Pike and Dave Cheney.
 // If you're unfamiliar with this style,
 // see https://commandcenter.blogspot.com/2014/01/self-referential-functions-and-design.html and

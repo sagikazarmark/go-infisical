@@ -11,6 +11,11 @@ import (
 
 type MachineIdentityCredential = infisical.MachineIdentityCredential
 
+// Authenticator exchanges a set of credentials (either explicit or identity-based) for an access token.
+type Authenticator interface {
+	Authenticate(ctx context.Context, httpClient *resty.Client) (MachineIdentityCredential, error)
+}
+
 // AccessTokenRefresher wraps an [Authenticator] and refreshes the access token when it expires.
 //
 // Note: this implementation uses a lock upon every token access. You may find it to be a bottleneck in high-throughput scenarios.
