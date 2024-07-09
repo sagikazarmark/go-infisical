@@ -2,6 +2,8 @@ package infisical
 
 import (
 	"context"
+	"io"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -19,6 +21,10 @@ func AccessTokenRefresher(authenticator Authenticator, opts ...AccessTokenRefres
 
 	for _, opt := range opts {
 		opt.apply(a)
+	}
+
+	if a.logger == nil {
+		a.logger = slog.New(slog.NewTextHandler(io.Discard, nil))
 	}
 
 	return a
@@ -46,6 +52,13 @@ func WithRefreshWindow(d time.Duration) AccessTokenRefresherOption {
 	})
 }
 
+// WithLogger configures a logger for the access token refresher.
+func WithLogger(logger *slog.Logger) AccessTokenRefresherOption {
+	return accessTokenRefresherOptionFunc(func(a *accessTokenRefresher) {
+		a.logger = logger
+	})
+}
+
 type accessTokenRefresher struct {
 	authenticator Authenticator
 	refreshWindow time.Duration
@@ -53,7 +66,7 @@ type accessTokenRefresher struct {
 	credential *MachineIdentityCredential
 	expiresAt  time.Time
 
-	// TODO: add a logger
+	logger *slog.Logger
 
 	mu sync.Mutex
 }
@@ -66,6 +79,8 @@ func (a *accessTokenRefresher) Authenticate(ctx context.Context, httpClient *res
 
 	// If we don't have a credential or it's about to expire, refresh it.
 	if a.credential == nil || time.Now().After(a.expiresAt.Add(-a.refreshWindow)) {
+		a.logger.Info("refreshing access token")
+
 		credential, err := a.authenticator.Authenticate(ctx, httpClient)
 		if err != nil {
 			return MachineIdentityCredential{}, err
@@ -74,9 +89,13 @@ func (a *accessTokenRefresher) Authenticate(ctx context.Context, httpClient *res
 		a.credential = &credential
 		a.expiresAt = time.Now().Add(time.Second * time.Duration(credential.ExpiresIn))
 
+		a.logger.Debug("new access token saved", slog.Time("expiresAt", a.expiresAt))
+
 		// Just fetched a new credential, we can safely assume it's valid.
 		return credential, nil
 	}
+
+	a.logger.Debug("returning cached access token", slog.Time("expiresAt", a.expiresAt))
 
 	return *a.credential, nil
 }
